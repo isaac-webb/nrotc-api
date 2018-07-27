@@ -3,23 +3,31 @@
 /**
  * Module dependencies.
  */
-
 const app = require('../src/app');
 const debug = require('debug')('nrotc-api:server');
 const https = require('https');
 const fs = require('fs');
+const mongoose = require('mongoose');
+
+/**
+ * Connect to MongoDB.
+ */
+mongoose.connect(`mongodb://${process.env.DB_HOST || 'nrotc_api_db'}/${process.env.DB_NAME || 'nrotc_api_dev'}`);
+const db = mongoose.connection;
+db.on('error', debug);
+db.once('open', function() {
+  debug('Connected to database');
+});
 
 /**
  * Get port from environment and store in Express.
  */
-
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
  * Create HTTPS server.
  */
-
 const options = {
   key: fs.readFileSync(process.env.SSL_KEY || 'key.pem'),
   cert: fs.readFileSync(process.env.SSL_CERT || 'certificate.pem')
@@ -29,17 +37,18 @@ const server = https.createServer(options, app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
 /**
  * Normalize a port into a number, string, or false.
+ *
+ * @param {string} val - The port to normalize.
+ * @returns {string|number|boolean} A string for a named pipe, a number for a port, and false otherwise.
  */
-
 function normalizePort(val) {
-  var port = parseInt(val, 10);
+  const port = parseInt(val, 10);
 
   if (isNaN(port)) {
     // named pipe
@@ -56,8 +65,9 @@ function normalizePort(val) {
 
 /**
  * Event listener for HTTP server "error" event.
+ *
+ * @param {Error} error - The error to process.
  */
-
 function onError(error) {
   if (error.syscall !== 'listen') {
     throw error;
@@ -85,7 +95,6 @@ function onError(error) {
 /**
  * Event listener for HTTP server "listening" event.
  */
-
 function onListening() {
   var addr = server.address();
   var bind = typeof addr === 'string'
