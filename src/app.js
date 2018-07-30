@@ -5,6 +5,9 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const debug = require('debug')('nrotc-api:app');
+debug.write = function(input) {
+  this(input);
+};
 
 /**
  * Create the express application.
@@ -20,7 +23,9 @@ const routers = [users];
 /**
  * Configure logger and universal middleware.
  */
-app.use(logger('dev'));
+app.use(logger('dev', {
+  stream: debug
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());

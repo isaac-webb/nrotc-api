@@ -8,6 +8,7 @@ RUN ["npm", "install"]
 # Copy over the application files
 FROM dependencies
 COPY . ./
+RUN ["chown", "-R", "/home/node"]
 
 # Set the application parameters
 ENV PORT 3000

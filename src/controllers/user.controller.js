@@ -1,8 +1,9 @@
 /**
- * Import the required model
+ * Import controller dependencies.
  */
-const User = require('../models/user.model');
+const ValidationError = require('mongoose').Error.ValidationError;
 const debug = require('debug')('nrotc-api:user-controller');
+const User = require('../models/user.model');
 
 /**
  * Creates a new user in the database. Responds with the created user if
@@ -13,7 +14,7 @@ const debug = require('debug')('nrotc-api:user-controller');
  * boolean indicating whether or not the created user should be an admin.
  * @param {Response} res - The server response object.
  */
-function createUser(req, res) {
+async function createUser(req, res) {
   // Extract relevant parameters from the body.
   let params = {};
   if (req.body.username) params.username = req.body.username;
@@ -22,15 +23,24 @@ function createUser(req, res) {
 
   // Attempt to create the user and deal with the result.
   let user = new User(params);
-  user.save().then((user) => {
-    // Return the successfully created user.
-    debug(`Created user ${user.username}`);
+  try {
+    let dbUser = await user.save();
+    debug(`Created user ${dbUser.username}`);
     res.status(201).send(user);
-  }).catch((err) => {
-    // Return the database error.
+  } catch(err) {
+    // Log the error.
     debug(`Error while creating user ${params.username}`);
-    res.status(400).send(err.message);
-  });
+    debug(err);
+
+    // Determine the type of error and return it.
+    if (err instanceof ValidationError) {
+      res.status(400).send(err.errors);
+    } else if (err.message.indexOf('duplicate key error') !== -1) {
+      res.status(400).send('Duplicate username detected');
+    } else {
+      res.status(500).send(err.message);
+    }
+  }
 }
 
 /**

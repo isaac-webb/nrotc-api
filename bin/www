@@ -12,7 +12,15 @@ const mongoose = require('mongoose');
 /**
  * Connect to MongoDB.
  */
-mongoose.connect(`mongodb://${process.env.DB_HOST || 'nrotc_api_db'}/${process.env.DB_NAME || 'nrotc_api_dev'}`);
+const opts = {
+  useNewUrlParser: true
+};
+const host = process.env.DB_HOST || 'nrotc_api_db';
+const dbPort = process.env.DB_PORT || 27017;
+const dbName = process.env.DB_NAME || 'nrotc_api_dev';
+mongoose.connect(`mongodb://${host}:${dbPort}/${dbName}`, opts).catch((err) => {
+  debug(err);
+});
 const db = mongoose.connection;
 db.on('error', debug);
 db.once('open', function() {
