@@ -13,7 +13,11 @@ const adminRouter = Router();
 /**
  * Configure the routes to use controller methods.
  */
+adminRouter.get('/', controller.getUsers);
+adminRouter.get('/:username', controller.getUserWithName);
 adminRouter.post('/', controller.createUser);
+adminRouter.patch('/:username', controller.patchUser);
+adminRouter.delete('/:username', controller.deleteUser);
 
 /**
  * Export the routers, also providing a name to serve them under.
